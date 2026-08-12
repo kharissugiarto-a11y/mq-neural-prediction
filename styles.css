@@ -35,7 +35,7 @@ button, input, select { font: inherit; }
 .hero-copy { max-width: 760px; }
 .eyebrow { display: flex; align-items: center; gap: 10px; color: var(--green); font-size: 0.72rem; font-weight: 850; letter-spacing: 0.15em; }
 .eyebrow span { width: 9px; height: 9px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 0 5px rgba(155, 196, 62, 0.18); }
-h1 { margin: 13px 0 12px; max-width: 720px; font-size: clamp(2.7rem, 6vw, 5.7rem); line-height: 0.92; letter-spacing: -0.068em; }
+h1 { margin: 13px 0 12px; max-width: 720px; font-size: clamp(2.2rem, 4.5vw, 4.4rem); line-height: 0.96; letter-spacing: -0.055em; }
 .hero-copy > p { max-width: 690px; margin: 0; color: var(--muted); font-size: 1rem; line-height: 1.6; }
 
 .connection-panel { min-width: min(100%, 415px); display: grid; gap: 10px; justify-items: end; }
@@ -136,7 +136,7 @@ tbody tr:last-child td { border-bottom: 0; }
 }
 
 @media (max-width: 480px) {
-  h1 { font-size: 2.8rem; }
+  h1 { font-size: 2.25rem; }
   .workflow, .sensor-grid, .form-grid, .record-actions { grid-template-columns: 1fr; }
   .field.span-2 { grid-column: auto; }
   .panel-heading, .record-state { flex-direction: column; }
