@@ -95,6 +95,7 @@ h1 { margin: 13px 0 12px; max-width: 720px; font-size: clamp(2.7rem, 6vw, 5.7rem
 .section-header p { max-width: 520px; margin: 3px 0 0; color: var(--muted); font-size: .77rem; line-height: 1.5; text-align: right; }
 .sensor-grid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 11px; margin-bottom: 18px; }
 .sensor-card { position: relative; overflow: hidden; min-height: 172px; padding: 16px; border: 1px solid var(--line); border-radius: 19px; background: var(--panel); box-shadow: var(--shadow); }
+.sensor-card::after { content: none !important; display: none !important; }
 .sensor-card > div { display: flex; align-items: center; justify-content: space-between; }
 .sensor-card > div span { color: var(--green); font-size: .7rem; font-weight: 850; letter-spacing: .06em; }
 .sensor-card > div small { padding: 4px 7px; border-radius: 999px; background: #eef3ed; color: var(--muted); font-size: .62rem; font-weight: 800; }
