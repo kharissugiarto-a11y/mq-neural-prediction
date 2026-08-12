@@ -94,7 +94,7 @@ h1 { margin: 13px 0 12px; max-width: 720px; font-size: clamp(2.2rem, 4.5vw, 4.4r
 .section-header { margin: 0 2px 12px; }
 .section-header p { max-width: 520px; margin: 3px 0 0; color: var(--muted); font-size: .77rem; line-height: 1.5; text-align: right; }
 .sensor-grid { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 11px; margin-bottom: 18px; }
-.sensor-card { position: relative; overflow: hidden; min-height: 172px; padding: 16px; border: 1px solid var(--line); border-radius: 19px; background: var(--panel); box-shadow: var(--shadow); }
+.sensor-card { position: relative; overflow: hidden; min-height: 252px; padding: 16px; border: 1px solid var(--line); border-radius: 19px; background: var(--panel); box-shadow: var(--shadow); }
 .sensor-card::after { content: none !important; display: none !important; }
 .sensor-card > div { display: flex; align-items: center; justify-content: space-between; }
 .sensor-card > div span { color: var(--green); font-size: .7rem; font-weight: 850; letter-spacing: .06em; }
@@ -103,6 +103,9 @@ h1 { margin: 13px 0 12px; max-width: 720px; font-size: clamp(2.2rem, 4.5vw, 4.4r
 .sensor-card dl { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 5px 11px; margin: 0; }
 .sensor-card dt { color: var(--muted); font-size: .65rem; }
 .sensor-card dd { margin: 0; text-align: right; font-size: 1.06rem; font-weight: 820; font-variant-numeric: tabular-nums; }
+.trend-heading { margin-top: 15px; padding-top: 10px; border-top: 1px solid #e8ede8; }
+.trend-heading span, .trend-heading small { color: var(--muted); font-size: .62rem; font-weight: 760; }
+.trend-chart { display: block; width: 100%; height: 62px; margin-top: 5px; }
 
 .table-panel { margin-bottom: 18px; }
 .table-wrap { margin-top: 15px; overflow-x: auto; }
