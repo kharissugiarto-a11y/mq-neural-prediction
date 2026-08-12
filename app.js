@@ -1,5 +1,6 @@
 const SENSOR_KEYS = ["mq6", "mq2", "mq135", "mq3", "mq131"];
 const MAX_ROWS = 100000;
+const MAX_TREND_POINTS = 120;
 
 const elements = {
   connectionStatus: document.querySelector("#connection-status"),
@@ -41,7 +42,68 @@ const state = {
   recordStartedAt: 0,
   recordMeta: null,
   downloaded: false,
+  trends: Object.fromEntries(SENSOR_KEYS.map((key) => [key, []])),
 };
+
+function drawTrend(key) {
+  const canvas = document.querySelector(`[data-chart="${key}"]`);
+  if (!canvas) return;
+  const rect = canvas.getBoundingClientRect();
+  const scale = window.devicePixelRatio || 1;
+  canvas.width = Math.max(1, Math.round(rect.width * scale));
+  canvas.height = Math.max(1, Math.round(rect.height * scale));
+  const context = canvas.getContext("2d");
+  context.scale(scale, scale);
+
+  const width = rect.width;
+  const height = rect.height;
+  const values = state.trends[key];
+  const styles = getComputedStyle(document.documentElement);
+  const lineColor = styles.getPropertyValue("--green").trim();
+  const gridColor = styles.getPropertyValue("--line").trim();
+
+  context.clearRect(0, 0, width, height);
+  context.strokeStyle = gridColor;
+  context.lineWidth = 1;
+  [0.25, 0.5, 0.75].forEach((position) => {
+    const y = Math.round(height * position) + 0.5;
+    context.beginPath();
+    context.moveTo(0, y);
+    context.lineTo(width, y);
+    context.stroke();
+  });
+  if (values.length < 2) return;
+
+  const minimum = Math.min(...values);
+  const maximum = Math.max(...values);
+  const range = Math.max(10, maximum - minimum);
+  const lower = Math.max(0, minimum - range * 0.15);
+  const upper = Math.min(1023, maximum + range * 0.15);
+  const domain = Math.max(1, upper - lower);
+
+  context.strokeStyle = lineColor;
+  context.lineWidth = 2;
+  context.lineJoin = "round";
+  context.lineCap = "round";
+  context.beginPath();
+  values.forEach((value, index) => {
+    const x = values.length === 1 ? width : (index / (values.length - 1)) * width;
+    const y = height - ((value - lower) / domain) * height;
+    if (index === 0) context.moveTo(x, y);
+    else context.lineTo(x, y);
+  });
+  context.stroke();
+}
+
+function updateTrends(reading) {
+  SENSOR_KEYS.forEach((key) => {
+    const value = finiteNumber(reading?.adc?.[key]);
+    if (value == null) return;
+    state.trends[key].push(value);
+    if (state.trends[key].length > MAX_TREND_POINTS) state.trends[key].shift();
+    drawTrend(key);
+  });
+}
 
 function showError(message) {
   elements.runtimeMessage.textContent = message;
@@ -170,6 +232,7 @@ function handleLine(line) {
     state.latest = reading;
     elements.lastUpdate.textContent = now.toLocaleTimeString("id-ID");
     updateSensorCards(reading);
+    updateTrends(reading);
     showError("");
     appendRow(reading, now);
     updateControls();
@@ -421,3 +484,5 @@ if (!("serial" in navigator)) {
 
 updateControls();
 renderPreview();
+SENSOR_KEYS.forEach(drawTrend);
+window.addEventListener("resize", () => SENSOR_KEYS.forEach(drawTrend));
