@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f2f5ef" />
+    <meta
+      name="description"
+      content="Kolektor dataset Rs/R0 lima sensor MQ untuk klasifikasi gas dan prediksi PPM."
+    />
+    <title>MQ Neural Dataset Studio</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow"><span></span>MQ NEURAL / DATASET STUDIO</div>
+          <h1>Rekam data yang siap dilatih.</h1>
+          <p>
+            Arduino Nano mengirim ADC dan Rs/R0. Anda menentukan label gas dan
+            konsentrasi referensi sebelum memulai setiap sesi.
+          </p>
+        </div>
+        <div class="connection-panel">
+          <div id="connection-status" class="status offline">
+            <i></i><span>Belum terhubung</span>
+          </div>
+          <div class="connection-actions">
+            <button id="connect-button" class="button primary" type="button">
+              Hubungkan Arduino
+            </button>
+            <button id="disconnect-button" class="button ghost hidden" type="button">
+              Putuskan
+            </button>
+            <button id="calibrate-button" class="button green" type="button" disabled>
+              Kalibrasi udara bersih
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <section id="browser-message" class="message error hidden" role="alert"></section>
+      <section id="runtime-message" class="message error hidden" role="alert"></section>
+
+      <section class="workflow" aria-label="Alur pengambilan data">
+        <article><b>01</b><span><strong>Kalibrasi</strong><small>Pastikan sensor stabil di udara bersih</small></span></article>
+        <article><b>02</b><span><strong>Isi label</strong><small>Gunakan kondisi eksperimen yang benar</small></span></article>
+        <article><b>03</b><span><strong>Mulai rekam</strong><small>Hanya periode penting yang disimpan</small></span></article>
+        <article><b>04</b><span><strong>Unduh CSV</strong><small>Gunakan sebagai dataset model</small></span></article>
+      </section>
+
+      <section class="capture-grid">
+        <article class="panel setup-panel">
+          <div class="panel-heading">
+            <div>
+              <span class="section-label">KONDISI EKSPERIMEN</span>
+              <h2>Label sesi</h2>
+            </div>
+            <span id="calibration-badge" class="badge warning">Belum terkalibrasi</span>
+          </div>
+
+          <div class="form-grid">
+            <label class="field span-2">
+              <span>Jenis gas *</span>
+              <select id="gas-label">
+                <option value="">Pilih label gas</option>
+                <option value="CLEAN_AIR">Udara bersih</option>
+                <option value="METHANE">Metana (CH₄)</option>
+                <option value="LPG">LPG</option>
+                <option value="SMOKE">Asap</option>
+                <option value="AMMONIA">Amonia (NH₃)</option>
+                <option value="TOLUENE">Toluena</option>
+                <option value="ETHANOL">Etanol</option>
+                <option value="OZONE">Ozon (O₃)</option>
+                <option value="SULFIDE">Sulfida</option>
+                <option value="MIXTURE">Campuran terkontrol</option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>PPM referensi</span>
+              <input id="reference-ppm" type="number" min="0" step="any" placeholder="Kosong jika tidak diketahui" />
+            </label>
+
+            <label class="field">
+              <span>Suhu (°C)</span>
+              <input id="temperature" type="number" step="0.1" placeholder="Opsional" />
+            </label>
+
+            <label class="field">
+              <span>Kelembapan (%RH)</span>
+              <input id="humidity" type="number" min="0" max="100" step="0.1" placeholder="Opsional" />
+            </label>
+
+            <label class="field">
+              <span>Catatan</span>
+              <input id="notes" type="text" maxlength="120" placeholder="Contoh: ruang uji 10 L" />
+            </label>
+          </div>
+
+          <p class="field-note">
+            PPM referensi harus berasal dari gas standar atau alat pembanding.
+            Jangan memakai PPM ekuivalen dari dashboard monitoring sebagai target.
+          </p>
+        </article>
+
+        <article class="panel record-panel">
+          <div class="record-state">
+            <div>
+              <span class="section-label">PEREKAMAN</span>
+              <h2 id="record-title">Siap menunggu</h2>
+            </div>
+            <span id="record-indicator" class="record-indicator"><i></i>Tidak merekam</span>
+          </div>
+
+          <div class="stats">
+            <div><span>Sampel</span><strong id="sample-count">0</strong></div>
+            <div><span>Sesi</span><strong id="session-name">—</strong></div>
+            <div><span>Data terakhir</span><strong id="last-update">—</strong></div>
+          </div>
+
+          <div class="record-actions">
+            <button id="start-button" class="button amber" type="button" disabled>Mulai rekam</button>
+            <button id="stop-button" class="button red hidden" type="button">Stop rekam</button>
+            <button id="download-button" class="button green" type="button" disabled>Unduh dataset CSV</button>
+            <button id="clear-button" class="button ghost" type="button" disabled>Hapus data</button>
+          </div>
+        </article>
+      </section>
+
+      <section class="section-header">
+        <div>
+          <span class="section-label">INPUT MODEL</span>
+          <h2>Respons lima sensor</h2>
+        </div>
+        <p>ADC disimpan sebagai data mentah; neural network memakai log(Rs/R0).</p>
+      </section>
+
+      <section id="sensor-grid" class="sensor-grid" aria-label="Pembacaan lima sensor">
+        <article class="sensor-card" data-sensor="mq6">
+          <div><span>MQ-6</span><small>A0</small></div><h3>Metana</h3>
+          <dl><dt>ADC</dt><dd data-field="adc">—</dd><dt>Rs/R0</dt><dd data-field="ratio">—</dd></dl>
+        </article>
+        <article class="sensor-card" data-sensor="mq2">
+          <div><span>MQ-2</span><small>A1</small></div><h3>LPG / asap</h3>
+          <dl><dt>ADC</dt><dd data-field="adc">—</dd><dt>Rs/R0</dt><dd data-field="ratio">—</dd></dl>
+        </article>
+        <article class="sensor-card" data-sensor="mq135">
+          <div><span>MQ-135</span><small>A2</small></div><h3>Kualitas udara</h3>
+          <dl><dt>ADC</dt><dd data-field="adc">—</dd><dt>Rs/R0</dt><dd data-field="ratio">—</dd></dl>
+        </article>
+        <article class="sensor-card" data-sensor="mq3">
+          <div><span>MQ-3</span><small>A3</small></div><h3>Etanol</h3>
+          <dl><dt>ADC</dt><dd data-field="adc">—</dd><dt>Rs/R0</dt><dd data-field="ratio">—</dd></dl>
+        </article>
+        <article class="sensor-card" data-sensor="mq131">
+          <div><span>MQ-131</span><small>A4</small></div><h3>Ozon</h3>
+          <dl><dt>ADC</dt><dd data-field="adc">—</dd><dt>Rs/R0</dt><dd data-field="ratio">—</dd></dl>
+        </article>
+      </section>
+
+      <section class="panel table-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="section-label">PRATINJAU DATASET</span>
+            <h2>Delapan sampel terbaru</h2>
+          </div>
+          <span id="model-badge" class="badge">MQ131: —</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Waktu</th><th>Label</th><th>PPM ref.</th>
+                <th>MQ-6</th><th>MQ-2</th><th>MQ-135</th><th>MQ-3</th><th>MQ-131</th>
+              </tr>
+            </thead>
+            <tbody id="preview-body">
+              <tr class="empty-row"><td colspan="9">Belum ada sampel yang direkam.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="notice">
+        <strong>Batas penggunaan</strong>
+        <p>
+          Sensor MQ bersifat cross-sensitive. Model hanya mempelajari kelas,
+          rentang konsentrasi, sensor fisik, dan kondisi lingkungan yang ada di dataset.
+          Hasil prediksi bukan alat keselamatan tersertifikasi.
+        </p>
+      </section>
+    </main>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
+
